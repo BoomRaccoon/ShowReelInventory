@@ -19,7 +19,20 @@ public:
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="Inventory")
 	TMap<EEquipmentSlot, FItem> EquippedItems;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 rows = 8;
 	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 columns = 8;
+	
+	int32 BitMask = 0;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	TArray<int32> SlotStates {0, 0, 0, 0, 0, 0, 0, 0};
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	UUserWidget* InventoryWidget;
 
 
 protected:
@@ -37,9 +50,13 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void AddItem(FItem Item, int InventorySlot);
 
+	void CreateBitMask(FItem& Item, int InventorySlot);
 	UFUNCTION(BlueprintCallable)
 	void EquipItem(EEquipmentSlot Slot, FItem Item);
 
 
 		
+public:
+	void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+
 };

@@ -16,4 +16,7 @@ class FIGHTFORFAME_API UFL_UI : public UBlueprintFunctionLibrary
 
 	UFUNCTION(BlueprintCallable, Category="File Utils", meta=(Keywords="file time get modified"))
 	static FDateTime GetFileModificationTime(FString Path);
+
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interface Helper", meta=(Keywords="uniform grid column"))
+	static int32 GetNumberOfColumns(UUniformGridPanel* UniformGridPanel);
 };

@@ -11,6 +11,8 @@ UAC_InventoryManager::UAC_InventoryManager()
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
 
+
+
 	// ...
 }
 
@@ -35,7 +37,31 @@ void UAC_InventoryManager::TickComponent(float DeltaTime, ELevelTick TickType, F
 
 void UAC_InventoryManager::AddItem(FItem Item, int InventorySlot)
 {
-	OwnedItems.Emplace(Item, InventorySlot);
+
+
+	if ((InventorySlot + Item.SlotSize.X) < rows && (InventorySlot + Item.SlotSize.Y) < columns)
+	{
+		int32 _row = FMath::Floor(InventorySlot / rows);
+		int32 _column = InventorySlot % columns;
+
+		
+
+		OwnedItems.Emplace(Item, InventorySlot);
+	}
+
+	//SlotStates[_row] |= (1 << n); // Take OR of i and 1 shifted n positions
+
+}
+
+void UAC_InventoryManager::CreateBitMask(FItem& Item ,int InventorySlot)
+{
+	if ((InventorySlot + Item.SlotSize.X) < rows)
+	{
+		for (int i = InventorySlot; i < (InventorySlot + Item.SlotSize.X); i++)
+		{
+			BitMask |= (1 << i); // Take OR of i and 1 shifted n positions
+		}
+	}
 }
 
 void UAC_InventoryManager::EquipItem(EEquipmentSlot Slot, FItem Item)
@@ -76,4 +102,12 @@ void UAC_InventoryManager::EquipItem(EEquipmentSlot Slot, FItem Item)
 			
 	}
 }
+
+void UAC_InventoryManager::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+{
+	Super::PostEditChangeProperty(PropertyChangedEvent);
+	UE_LOG(LogTemp, Log, TEXT("ChangedPropertyName: %s"), *PropertyChangedEvent.Property->GetName());
+	
+}
+
 

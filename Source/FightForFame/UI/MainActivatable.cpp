@@ -5,5 +5,5 @@
 
 TOptional<FUIInputConfig> UMainActivatable::GetDesiredInputConfig() const
 {
-	return FUIInputConfig(ECommonInputMode::All, EMouseCaptureMode::CapturePermanently_IncludingInitialMouseDown);
+	return FUIInputConfig(ECommonInputMode::All, EMouseCaptureMode::CapturePermanently_IncludingInitialMouseDown, true);
 }
