@@ -12,6 +12,8 @@
 #include "MyCharacterMovementComponent.h"
 #include "MotionWarpingComponent.h"
 #include "../Components/AC_InventoryManager.h"
+#include "../Pickup.h"
+#include "../Interfaces/Interaction.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -205,7 +207,14 @@ void AFightForFameCharacter::Interact()
 {
 	FHitResult OutHit;
 	bool hit = GetWorld()->LineTraceSingleByChannel(OutHit, FollowCamera->GetComponentLocation(), FollowCamera->GetComponentLocation() + (FollowCamera->GetForwardVector()*1000), ECollisionChannel::ECC_GameTraceChannel10);
-	if(hit)
+	if (hit)
+	{
+		if(OutHit.GetActor()->Implements<UInteraction>())
+		{
+			IInteraction::Execute_Interact(OutHit.GetActor(), this);
+		}
+	}
+		
 		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, FString::Printf(TEXT("%s"), *OutHit.GetActor()->GetActorNameOrLabel()));
 		
 	DrawDebugLine(GetWorld(), FollowCamera->GetComponentLocation(), FollowCamera->GetComponentLocation() + (FollowCamera->GetForwardVector() * 1000), FColor::Cyan, false, 5.0f, 0, 5.0f);

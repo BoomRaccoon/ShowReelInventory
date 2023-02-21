@@ -62,6 +62,7 @@ struct FItem : public FTableRowBase
 	bool operator ==(const FItem& Item) const { return Name.EqualTo(Item.Name); };
 
 public:
+	
 	UPROPERTY(EditAnywhere)
 	FText Name;
 	

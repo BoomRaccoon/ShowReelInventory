@@ -97,6 +97,7 @@ protected:
 	// To add mapping context
 	virtual void BeginPlay();
 
+	UFUNCTION(BlueprintCallable)
 	void Interact();
 
 	UFUNCTION(BlueprintCallable, BlueprintPure)

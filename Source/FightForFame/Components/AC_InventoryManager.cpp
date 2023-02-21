@@ -4,6 +4,10 @@
 #include "Components/AC_InventoryManager.h"
 #include "../Base/FightForFameCharacter.h"
 
+
+DEFINE_LOG_CATEGORY(Inventory);
+
+
 // Sets default values for this component's properties
 UAC_InventoryManager::UAC_InventoryManager()
 {
@@ -35,34 +39,18 @@ void UAC_InventoryManager::TickComponent(float DeltaTime, ELevelTick TickType, F
 	// ...
 }
 
-void UAC_InventoryManager::AddItem(FItem Item, int InventorySlot)
+void UAC_InventoryManager::AddItem(int InventorySlot, FItem Item)
 {
-
-
-	if ((InventorySlot + Item.SlotSize.X) < rows && (InventorySlot + Item.SlotSize.Y) < columns)
+	if (InventorySlot < InventorySize)
 	{
-		int32 _row = FMath::Floor(InventorySlot / rows);
-		int32 _column = InventorySlot % columns;
-
-		
-
-		OwnedItems.Emplace(Item, InventorySlot);
+		if(!CheckSpace(Item.SlotSize, InventorySlot))
+			return;
+		OwnedItems.Emplace(InventorySlot, Item);
 	}
-
-	//SlotStates[_row] |= (1 << n); // Take OR of i and 1 shifted n positions
 
 }
 
-void UAC_InventoryManager::CreateBitMask(FItem& Item ,int InventorySlot)
-{
-	if ((InventorySlot + Item.SlotSize.X) < rows)
-	{
-		for (int i = InventorySlot; i < (InventorySlot + Item.SlotSize.X); i++)
-		{
-			BitMask |= (1 << i); // Take OR of i and 1 shifted n positions
-		}
-	}
-}
+
 
 void UAC_InventoryManager::EquipItem(EEquipmentSlot Slot, FItem Item)
 {
@@ -82,19 +70,25 @@ void UAC_InventoryManager::EquipItem(EEquipmentSlot Slot, FItem Item)
 		switch (Slot)
 		{
 				case 0:
+					Player->Helmet->SetStaticMesh(Item.Mesh.LoadSynchronous());
 					break;
 				case 1:
+					Player->Neckless->SetStaticMesh(Item.Mesh.LoadSynchronous());
 					break;
 				case 2:
+					Player->Body->SetStaticMesh(Item.Mesh.LoadSynchronous());
 					break;
 				case 3:
 					Player->Hand1->SetStaticMesh(Item.Mesh.LoadSynchronous());
 					break;
 				case 4:
+					Player->Hand2->SetStaticMesh(Item.Mesh.LoadSynchronous());
 					break;
 				case 5:
+					Player->Pants->SetStaticMesh(Item.Mesh.LoadSynchronous());
 					break;
 				case 6:
+					Player->Shoes->SetStaticMesh(Item.Mesh.LoadSynchronous());
 					break;
 				default:
 					break;
@@ -103,10 +97,35 @@ void UAC_InventoryManager::EquipItem(EEquipmentSlot Slot, FItem Item)
 	}
 }
 
+bool UAC_InventoryManager::CheckSpace(FVector2D Size, int Slot)
+{
+	// early out when item breaches maximum rows/columns
+	if (!Slot + Size.X < ColumnsRows.X && Slot + Size.Y < ColumnsRows.Y)
+	{
+		UE_LOG(Inventory, Log, TEXT("Item exceeds inventory bounds -> doesn't fit"));
+		return false;
+	}
+
+	// check every slot state, out if a slot is occupied
+	for (int i = 0; i < Size.Y; i++)
+	{
+		for (int j = 0; j < Size.X; j++)
+		{
+			if(InventorySlots.Find(Slot+i*8+j))
+			{
+				UE_LOG(Inventory, Log, TEXT("Item did not fit"));
+				return false;
+			}
+		}
+	}
+
+	return true;
+}
+
 void UAC_InventoryManager::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
-	UE_LOG(LogTemp, Log, TEXT("ChangedPropertyName: %s"), *PropertyChangedEvent.Property->GetName());
+	UE_LOG(Inventory, Log, TEXT("ChangedPropertyName: %s"), *PropertyChangedEvent.Property->GetName());
 	
 }
 

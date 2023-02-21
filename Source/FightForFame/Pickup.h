@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Data/Inventory.h"
+#include "Interfaces/Interaction.h"
 #include "Pickup.generated.h"
 
 
@@ -15,7 +16,7 @@ class UTextRenderComponent;
 class AFightForFameCharacter;
 
 UCLASS()
-class FIGHTFORFAME_API APickup : public AActor
+class FIGHTFORFAME_API APickup : public AActor, public IInteraction
 {
 	GENERATED_BODY()
 	
@@ -39,13 +40,10 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	USphereComponent* FarInteraction;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-	UBoxComponent* CloseInteraction;
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UStaticMeshComponent* ItemMesh;
 
-	UPROPERTY()
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UTextRenderComponent* PickupText;
 
 	UPROPERTY()
@@ -70,4 +68,7 @@ public:
 	void PostInitializeComponents() override;
 
 	void UpdateTextLocation();
+
+	void Interact_Implementation(AFightForFameCharacter* Char) override;
+
 };

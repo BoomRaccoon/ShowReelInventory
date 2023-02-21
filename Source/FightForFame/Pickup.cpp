@@ -7,6 +7,7 @@
 #include "Components/TextRenderComponent.h"
 #include "Base/FightForFameCharacter.h"
 #include "Camera/CameraComponent.h"
+#include <Components/CapsuleComponent.h>
 
 // Sets default values
 APickup::APickup()
@@ -17,11 +18,10 @@ APickup::APickup()
 	ItemMesh->SetSimulatePhysics(true);
 	
 	FarInteraction = CreateDefaultSubobject<USphereComponent>("Interaction (Far)");
-	CloseInteraction = CreateDefaultSubobject<UBoxComponent>("Interaction (Close)");
 	PickupText = CreateDefaultSubobject<UTextRenderComponent>("PickupText");
 
 	FarInteraction->SetupAttachment(ItemMesh);
-	CloseInteraction->SetupAttachment(ItemMesh);
+
 
 	PickupText->SetVisibility(false);
 	SetActorTickEnabled(false);
@@ -55,8 +55,6 @@ void APickup::OnConstruction(const FTransform& Transform)
 			FBoxSphereBounds ItemBounds = ItemMesh->GetStaticMesh()->GetBounds();
 			FarInteraction->SetSphereRadius(ItemBounds.SphereRadius + AdditionalFarInteractionRange);
 			FarInteraction->SetRelativeLocation(ItemBounds.Origin);
-			CloseInteraction->SetBoxExtent(ItemBounds.BoxExtent);
-			CloseInteraction->SetRelativeLocation(ItemBounds.Origin);
 
 			if (!TableRow.RowName.IsNone())
 			{
@@ -69,7 +67,8 @@ void APickup::OnConstruction(const FTransform& Transform)
 void APickup::BeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	Character = Cast<AFightForFameCharacter>(OtherActor);
-	if (Character)
+	UCapsuleComponent* Capsule = Cast<UCapsuleComponent>(OtherComp);
+	if (Character && Capsule)
 	{
 		SetActorTickEnabled(true);
 		GetWorldTimerManager().SetTimer(SetTextUpwardHandle, this, &APickup::UpdateTextLocation, 0.2f);
@@ -94,4 +93,9 @@ void APickup::PostInitializeComponents()
 void APickup::UpdateTextLocation()
 {
 	PickupText->SetWorldLocation(FVector(GetActorLocation().X, GetActorLocation().Y, GetActorLocation().Z + FarInteraction->GetScaledSphereRadius()));
+}
+
+void APickup::Interact_Implementation(AFightForFameCharacter* Char)
+{
+	throw std::logic_error("The method or operation is not implemented.");
 }
