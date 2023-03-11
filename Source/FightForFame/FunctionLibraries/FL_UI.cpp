@@ -9,11 +9,3 @@ FDateTime UFL_UI::GetFileModificationTime(FString Path)
 	return Date;
 }
 
-int32 UFL_UI::GetNumberOfColumns(UUniformGridPanel* UniformGridPanel)
-{
-	if (UniformGridPanel)
-	{
-		return 5;
-	}
-	return 0;
-}

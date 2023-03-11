@@ -17,6 +17,10 @@ class FIGHTFORFAME_API UFL_UI : public UBlueprintFunctionLibrary
 	UFUNCTION(BlueprintCallable, Category="File Utils", meta=(Keywords="file time get modified"))
 	static FDateTime GetFileModificationTime(FString Path);
 
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interface Helper", meta=(Keywords="uniform grid column"))
-	static int32 GetNumberOfColumns(UUniformGridPanel* UniformGridPanel);
+
+	UFUNCTION(BlueprintCallable, Category = "Inventory", meta = (Keywords = "inventory get occupied slots"))
+	static void GetOccupiedSlots();
+
+	UFUNCTION(BlueprintCallable, Category="UI", meta = (Keywords = "widget under cursor"))
+	static void GetWidgetUnderCursor(FVector2D ScreenspacePosition);
 };

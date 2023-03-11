@@ -29,6 +29,18 @@ enum class EEquipmentSlot : uint8
 	s_Shoes
 };
 
+
+UENUM(BlueprintType, Meta = (Bitflags))
+enum class EInteractActions : uint8
+{
+	None = 0 UMETA(Hidden),
+	Useable = 1 UMETA(DisplayName="Use"),
+	Equippable = 2 UMETA(DisplayName = "Equip"),
+	Consumeable = 4 UMETA(DisplayName = "Consume"),
+	Enhanceable = 8 UMETA(DisplayName = "Enhance"),
+
+};
+
 UENUM(BlueprintType)
 enum class EItemType : uint8
 {
@@ -41,29 +53,12 @@ USTRUCT(BlueprintType)
 struct FItem : public FTableRowBase
 {
 	GENERATED_BODY()
-	FItem(){};
-	FItem(FItem* Item) : Name(Item->Name), EquipmentSlot(Item->EquipmentSlot), Type(Item->Type), Mesh(Item->Mesh), Durability(Item->Durability), SlotSize(Item->SlotSize), Description(Item->Description), Icon(Item->Icon) {};
-	FItem(FItem& Item) : Name(Item.Name), EquipmentSlot(Item.EquipmentSlot), Type(Item.Type), Mesh(Item.Mesh), Durability(Item.Durability), SlotSize(Item.SlotSize), Description(Item.Description), Icon(Item.Icon) {};
-	FItem(FItem&& Item) : Name(Item.Name), EquipmentSlot(Item.EquipmentSlot), Type(Item.Type), Mesh(Item.Mesh), Durability(Item.Durability), SlotSize(Item.SlotSize), Description(Item.Description), Icon(Item.Icon) {};
-
-	FItem& operator = (const FItem& Item) {
-		Name = Item.Name;
-		EquipmentSlot = Item.EquipmentSlot;
-		Type = Item.Type;
-		Mesh = Item.Mesh;
-		Durability = Item.Durability;
-		SlotSize = Item.SlotSize;
-		Description = Item.Description;
-		Icon = Item.Icon;
-		AttackAnimations = Item.AttackAnimations;
-		return *this;
-	};
-
-	bool operator ==(const FItem& Item) const { return Name.EqualTo(Item.Name); };
+	
+	FItem() = default;	
 
 public:
 	
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FText Name;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -79,7 +74,7 @@ public:
 	float Durability;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-	FVector2D SlotSize;
+	FIntPoint SlotSize;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	FText Description;
@@ -90,8 +85,10 @@ public:
 	UPROPERTY(EditDefaultsOnly)
 	TArray<TSoftObjectPtr<UAnimMontage>> AttackAnimations;
 
-};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (Bitmask, BitmaskEnum = "EInteractionActions"))
+	uint8 Interactions;
 
+};
 
 
 FORCEINLINE uint32 GetTypeHash(const FItem& Item)

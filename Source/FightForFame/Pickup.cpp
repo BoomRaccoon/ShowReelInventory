@@ -49,7 +49,7 @@ void APickup::OnConstruction(const FTransform& Transform)
 	Super::OnConstruction(Transform);
 	if (!TableRow.IsNull() && !TableRow.RowName.IsNone())
 	{
-		Item = TableRow.GetRow<FItem>(TableRow.DataTable->GetName());
+		Item = *TableRow.GetRow<FItem>(TableRow.DataTable->GetName());
 		if (ItemMesh->SetStaticMesh(Item.Mesh.LoadSynchronous()))
 		{			
 			FBoxSphereBounds ItemBounds = ItemMesh->GetStaticMesh()->GetBounds();

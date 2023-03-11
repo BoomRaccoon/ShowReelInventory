@@ -40,10 +40,10 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	USphereComponent* FarInteraction;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(BlueprintReadWrite)
 	UStaticMeshComponent* ItemMesh;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(BlueprintReadWrite)
 	UTextRenderComponent* PickupText;
 
 	UPROPERTY()
