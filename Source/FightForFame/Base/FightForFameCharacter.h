@@ -51,6 +51,9 @@ public:
 	class UCameraComponent* FollowCamera;
 	/////////////////////////////////////////////
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UStaticMeshComponent> StaticMeshComponent;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	UAC_InventoryManager* InventoryManager;
 

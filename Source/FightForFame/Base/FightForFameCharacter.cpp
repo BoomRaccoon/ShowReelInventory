@@ -80,9 +80,9 @@ AFightForFameCharacter::AFightForFameCharacter(const FObjectInitializer& ObjectI
 	Hand2 = CreateDefaultSubobject<UStaticMeshComponent>("Hand2");
 	Pants = CreateDefaultSubobject<UStaticMeshComponent>("Pants");
 	Shoes = CreateDefaultSubobject<UStaticMeshComponent>("Shoes");
-	Helmet->SetupAttachment(GetMesh());
+	Helmet->SetupAttachment(GetMesh(), "s_head");
 	Neckless->SetupAttachment(GetMesh());
-	Body->SetupAttachment(GetMesh());
+	Body->SetupAttachment(GetMesh(), "s_body");
 	Hand1->SetupAttachment(GetMesh(), "s_hand_r");
 	Hand2->SetupAttachment(GetMesh(), "s_hand_l");
 	Pants->SetupAttachment(GetMesh());
@@ -215,9 +215,7 @@ void AFightForFameCharacter::Interact()
 		}
 	}
 		
-		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, FString::Printf(TEXT("%s"), *OutHit.GetActor()->GetActorNameOrLabel()));
-		
-	DrawDebugLine(GetWorld(), FollowCamera->GetComponentLocation(), FollowCamera->GetComponentLocation() + (FollowCamera->GetForwardVector() * 1000), FColor::Cyan, false, 5.0f, 0, 5.0f);
+	//DrawDebugLine(GetWorld(), FollowCamera->GetComponentLocation(), FollowCamera->GetComponentLocation() + (FollowCamera->GetForwardVector() * 1000), FColor::Cyan, false, 5.0f, 0, 5.0f);
 }
 
 UMyCharacterMovementComponent* AFightForFameCharacter::GetMyMovementComponent() const
