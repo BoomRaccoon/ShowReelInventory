@@ -18,30 +18,24 @@ class FIGHTFORFAME_API UAC_InventoryManager : public UActorComponent
 
 public:	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="Inventory")
-	TMap<int, FItem > OwnedItems;
-	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="Inventory")
-	TMap<EEquipmentSlot, FItem> EquippedItems;
+	TArray<FItem> OwnedItems;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="Inventory")
-	TMap<int, bool> InventorySlots;	
+	TArray<bool> InventorySlots; 
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="Inventory")
-	FVector2D ColumnsRows {7,7};
+	TArray<FItem> EquippedItems;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="Inventory")
+	FIntPoint ColumnsRows {7,7};
+
+	UPROPERTY()
 	int InventorySize = 63;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	UUserWidget* InventoryWidget;
 	
-	/*
-		Possible setup for bit field
-	*/
-	//int32 BitMask = 0;
 
-	/*UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	TArray<int32> SlotStates {0, 0, 0, 0, 0, 0, 0, 0};*/
 
 
 protected:
@@ -57,20 +51,33 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	UFUNCTION(BlueprintCallable)
-	void AddItem(int InventorySlot, FItem Item);
+	bool AddItem(int InventorySlot, const FItem& Item);
 
-	void CreateBitMask(FItem& Item, int InventorySlot);
 	UFUNCTION(BlueprintCallable)
-	void EquipItem(EEquipmentSlot Slot, FItem Item);
+	bool MoveItem(FIntPoint Size, int Slot, int PreviousSlot);
+
+	UFUNCTION(BlueprintCallable)
+	bool EquipItem(EEquipmentSlot Slot, const FItem& Item);
 
 	/*
 	Returns true if the item fits at the specified slot
 	@param Size := Size.X=Columns  Size.Y=Rows
 	@param Slot := position of the item in the inventory
 	*/
-	bool CheckSpace(FVector2D Size, int Slot);
+	UFUNCTION(BlueprintCallable)
+	bool CheckSpace(FIntPoint Size, int Slot, int PreviousSlot = -1);
+
+	UFUNCTION(BlueprintCallable)
+	int FindSlot(const FItem& Item);
+
+	UFUNCTION(BlueprintCallable)
+	void CommitChange(FIntPoint Size, int Slot);
+
+	UFUNCTION(BlueprintCallable)
+	void RemoveItem(FItem Item, int Slot);
 
 
+private:
 		
 public:
 	void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;

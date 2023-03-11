@@ -15,7 +15,7 @@ UAC_InventoryManager::UAC_InventoryManager()
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
 
-
+	
 
 	// ...
 }
@@ -25,7 +25,10 @@ UAC_InventoryManager::UAC_InventoryManager()
 void UAC_InventoryManager::BeginPlay()
 {
 	Super::BeginPlay();
-
+	InventorySlots.SetNum((ColumnsRows.X+1) * (ColumnsRows.Y+1)); // Init inventory array of slot states
+	InventorySize = (ColumnsRows.X + 1) * (ColumnsRows.Y + 1) -1;
+	OwnedItems.Init(FItem(), (ColumnsRows.X + 1) * (ColumnsRows.Y + 1));
+	EquippedItems.Init(FItem(), 7);
 	// ...
 	
 }
@@ -39,22 +42,22 @@ void UAC_InventoryManager::TickComponent(float DeltaTime, ELevelTick TickType, F
 	// ...
 }
 
-void UAC_InventoryManager::AddItem(int InventorySlot, FItem Item)
+bool UAC_InventoryManager::AddItem(int InventorySlot, const FItem& Item)
 {
 	if (InventorySlot < InventorySize)
 	{
 		if(!CheckSpace(Item.SlotSize, InventorySlot))
-			return;
-		OwnedItems.Emplace(InventorySlot, Item);
+			return false;
+		CommitChange(Item.SlotSize, InventorySlot);
+		OwnedItems[InventorySlot] = Item;
+		return true;
 	}
-
+	return false;
 }
 
 
-
-void UAC_InventoryManager::EquipItem(EEquipmentSlot Slot, FItem Item)
+bool UAC_InventoryManager::EquipItem(EEquipmentSlot Slot, const FItem& Item)
 {
-	EquippedItems.Emplace(Slot, Item);
 	/*
 	s_Head = 0,
 	s_Neckless,
@@ -64,63 +67,149 @@ void UAC_InventoryManager::EquipItem(EEquipmentSlot Slot, FItem Item)
 	s_Pants,
 	s_Shoes
 	*/
-	AFightForFameCharacter* Player = Cast<AFightForFameCharacter>(GetOwner());
-	if (Player)
+
+	if (EquippedItems[(int)Slot].Name.IsEmpty())
 	{
-		switch (Slot)
+		EquippedItems[(int)Slot] = Item;
+		AFightForFameCharacter* Player = Cast<AFightForFameCharacter>(GetOwner());
+		if (Player)
 		{
-				case 0:
-					Player->Helmet->SetStaticMesh(Item.Mesh.LoadSynchronous());
-					break;
-				case 1:
-					Player->Neckless->SetStaticMesh(Item.Mesh.LoadSynchronous());
-					break;
-				case 2:
-					Player->Body->SetStaticMesh(Item.Mesh.LoadSynchronous());
-					break;
-				case 3:
-					Player->Hand1->SetStaticMesh(Item.Mesh.LoadSynchronous());
-					break;
-				case 4:
-					Player->Hand2->SetStaticMesh(Item.Mesh.LoadSynchronous());
-					break;
-				case 5:
-					Player->Pants->SetStaticMesh(Item.Mesh.LoadSynchronous());
-					break;
-				case 6:
-					Player->Shoes->SetStaticMesh(Item.Mesh.LoadSynchronous());
-					break;
-				default:
-					break;
+			switch (Slot)
+			{
+					case 0:
+						Player->Helmet->SetStaticMesh(Item.Mesh.LoadSynchronous());
+						break;
+					case 1:
+						Player->Neckless->SetStaticMesh(Item.Mesh.LoadSynchronous());
+						break;
+					case 2:
+						Player->Body->SetStaticMesh(Item.Mesh.LoadSynchronous());
+						break;
+					case 3:
+						Player->Hand1->SetStaticMesh(Item.Mesh.LoadSynchronous());
+						break;
+					case 4:
+						Player->Hand2->SetStaticMesh(Item.Mesh.LoadSynchronous());
+						break;
+					case 5:
+						Player->Pants->SetStaticMesh(Item.Mesh.LoadSynchronous());
+						break;
+					case 6:
+						Player->Shoes->SetStaticMesh(Item.Mesh.LoadSynchronous());
+						break;
+					default:
+						break;
+			}
 		}
-			
+		return true;
 	}
+	return false;
 }
 
-bool UAC_InventoryManager::CheckSpace(FVector2D Size, int Slot)
+bool UAC_InventoryManager::CheckSpace(FIntPoint ItemSize, int Slot, int PreviousSlot)
 {
-	// early out when item breaches maximum rows/columns
-	if (!Slot + Size.X < ColumnsRows.X && Slot + Size.Y < ColumnsRows.Y)
+	// early out when item goes beyond maximum rows/columns
+	if (! ((Slot%(ColumnsRows.X + 1))+ ItemSize.X <= ColumnsRows.X+1 && FMath::Floor(Slot/(ColumnsRows.Y+1)) + ItemSize.Y <= ColumnsRows.Y+1) )
 	{
 		UE_LOG(Inventory, Log, TEXT("Item exceeds inventory bounds -> doesn't fit"));
 		return false;
 	}
 
-	// check every slot state, out if a slot is occupied
-	for (int i = 0; i < Size.Y; i++)
+	TArray<bool> tempSlots = InventorySlots;
+	if (! (PreviousSlot < 0) )
 	{
-		for (int j = 0; j < Size.X; j++)
+		// temporary array to set slots of previous false before the check check space if item is occupying slots
+		for (int i = Slot; i < Slot+ ColumnsRows.X * ItemSize.Y + 1; i = i + ColumnsRows.Y + 1)
 		{
-			if(InventorySlots.Find(Slot+i*8+j))
+			for (int j = 0; j < ItemSize.Y - 1; j++)
+			{
+				tempSlots[i + j] = false;
+			}
+		}
+	}
+
+
+	// check every affected slot state, return if a slot is occupied
+	for (int i = Slot; i < Slot+ColumnsRows.X*ItemSize.Y+1; i= i+ColumnsRows.Y+1)
+	{
+		for (int j = 0; j < ItemSize.Y-1; j++)
+		{ 
+			if(tempSlots[i + j])
 			{
 				UE_LOG(Inventory, Log, TEXT("Item did not fit"));
 				return false;
 			}
 		}
 	}
+	return true;
+}
+
+
+int UAC_InventoryManager::FindSlot(const FItem& Item)
+{
+	int lastAvailableIndex = InventorySize - ( (Item.SlotSize.Y-1) * ColumnsRows.X) - ColumnsRows.Y;
+	
+	for(int Slot = 0; Slot < lastAvailableIndex; Slot++)
+	{
+		if (CheckSpace(Item.SlotSize, Slot))
+			return Slot;
+	}
+	
+	return -1;
+}
+
+void UAC_InventoryManager::CommitChange(FIntPoint Size, int Slot)
+{
+	for (int i = Slot; i < Slot+ColumnsRows.X * Size.Y+1; i= i + ColumnsRows.Y + 1)
+	{
+		for (int j = 0; j < Size.Y; j++)
+		{
+			InventorySlots[i + j] = true;
+		}
+	}
+}
+
+void UAC_InventoryManager::RemoveItem(FItem Item, int Slot)
+{
+	for (int i = Slot; i < Slot + ColumnsRows.X * Item.SlotSize.Y + 1; i = i + ColumnsRows.Y + 1)
+	{
+		for (int j = 0; j < Item.SlotSize.Y; j++)
+		{
+			InventorySlots[i + j] = false;
+		}
+	}
+	OwnedItems[Slot] = FItem();
+}
+
+bool UAC_InventoryManager::MoveItem(FIntPoint Size, int Slot, int PreviousSlot)
+{
+	if (!CheckSpace(Size, Slot, PreviousSlot))
+	{
+		UE_LOG(Inventory, Log, TEXT("Item did not fit"));
+		return false;
+	}
+	
+	for (int i = PreviousSlot; i < PreviousSlot + ColumnsRows.X * Size.Y + 1; i = i + ColumnsRows.Y + 1)
+	{
+		for (int j = 0; j < Size.Y - 1; j++)
+		{
+			InventorySlots[i + j] = false;
+		}
+	}
+
+	
+	for (int i = Slot; i < Slot + ColumnsRows.X * Size.Y + 1; i = i + ColumnsRows.Y + 1)
+	{
+		for (int j = 0; j < Size.Y - 1; j++)
+		{
+			InventorySlots[i + j] = true;
+		}
+	}
 
 	return true;
 }
+
+
 
 void UAC_InventoryManager::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
