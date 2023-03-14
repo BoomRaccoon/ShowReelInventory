@@ -119,7 +119,7 @@ bool UAC_InventoryManager::CheckSpace(FIntPoint ItemSize, int Slot, int Previous
 	if (! (PreviousSlot < 0) )
 	{
 		// temporary array to set slots of previous false before the check check space if item is occupying slots
-		for (int i = Slot; i < Slot+ ColumnsRows.X * ItemSize.Y + 1; i = i + ColumnsRows.Y + 1)
+		for (int i = PreviousSlot; i < Slot+ ColumnsRows.X * ItemSize.Y + 1; i = i + ColumnsRows.Y + 1)
 		{
 			for (int j = 0; j < ItemSize.Y - 1; j++)
 			{
@@ -130,9 +130,9 @@ bool UAC_InventoryManager::CheckSpace(FIntPoint ItemSize, int Slot, int Previous
 
 
 	// check every affected slot state, return if a slot is occupied
-	for (int i = Slot; i < Slot+ColumnsRows.X*ItemSize.Y+1; i= i+ColumnsRows.Y+1)
+	for (int i = Slot; i < Slot+(ColumnsRows.X+1)*ItemSize.Y; i= i+ColumnsRows.Y+1)
 	{
-		for (int j = 0; j < ItemSize.Y-1; j++)
+		for (int j = 0; j < ItemSize.X; j++)
 		{ 
 			if(tempSlots[i + j])
 			{
@@ -160,9 +160,9 @@ int UAC_InventoryManager::FindSlot(const FItem& Item)
 
 void UAC_InventoryManager::CommitChange(FIntPoint Size, int Slot)
 {
-	for (int i = Slot; i < Slot+ColumnsRows.X * Size.Y+1; i= i + ColumnsRows.Y + 1)
+	for (int i = Slot; i < Slot+ (ColumnsRows.X+1) * Size.Y; i= i + ColumnsRows.Y + 1)
 	{
-		for (int j = 0; j < Size.Y; j++)
+		for (int j = 0; j < Size.X; j++)
 		{
 			InventorySlots[i + j] = true;
 		}
@@ -181,30 +181,33 @@ void UAC_InventoryManager::RemoveItem(FItem Item, int Slot)
 	OwnedItems[Slot] = FItem();
 }
 
-bool UAC_InventoryManager::MoveItem(FIntPoint Size, int Slot, int PreviousSlot)
+bool UAC_InventoryManager::MoveItem(FItem& Item, int Slot, int PreviousSlot)
 {
-	if (!CheckSpace(Size, Slot, PreviousSlot))
+	if (!CheckSpace(Item.SlotSize, Slot, PreviousSlot))
 	{
 		UE_LOG(Inventory, Log, TEXT("Item did not fit"));
 		return false;
 	}
 	
-	for (int i = PreviousSlot; i < PreviousSlot + ColumnsRows.X * Size.Y + 1; i = i + ColumnsRows.Y + 1)
+	for (int i = PreviousSlot; i < PreviousSlot + ColumnsRows.X * Item.SlotSize.Y + 1; i = i + ColumnsRows.Y + 1)
 	{
-		for (int j = 0; j < Size.Y - 1; j++)
+		for (int j = 0; j < Item.SlotSize.Y - 1; j++)
 		{
 			InventorySlots[i + j] = false;
 		}
 	}
 
-	
-	for (int i = Slot; i < Slot + ColumnsRows.X * Size.Y + 1; i = i + ColumnsRows.Y + 1)
+	for (int i = Slot; i < Slot + (ColumnsRows.X + 1) * Item.SlotSize.Y; i = i + ColumnsRows.Y + 1)
 	{
-		for (int j = 0; j < Size.Y - 1; j++)
+		for (int j = 0; j < Item.SlotSize.Y - 1; j++)
 		{
 			InventorySlots[i + j] = true;
 		}
 	}
+
+
+	OwnedItems[PreviousSlot] = FItem();
+	OwnedItems[Slot] = Item;
 
 	return true;
 }

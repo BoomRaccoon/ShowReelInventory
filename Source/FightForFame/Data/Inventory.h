@@ -25,7 +25,6 @@ enum class EEquipmentSlot : uint8
 	s_Body,
 	s_Hand1,
 	s_Hand2,
-	s_Pants,
 	s_Shoes
 };
 

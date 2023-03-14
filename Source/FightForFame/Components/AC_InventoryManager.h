@@ -54,7 +54,7 @@ public:
 	bool AddItem(int InventorySlot, const FItem& Item);
 
 	UFUNCTION(BlueprintCallable)
-	bool MoveItem(FIntPoint Size, int Slot, int PreviousSlot);
+	bool MoveItem(UPARAM(ref)	 FItem& Item, int Slot, int PreviousSlot);
 
 	UFUNCTION(BlueprintCallable)
 	bool EquipItem(EEquipmentSlot Slot, const FItem& Item);
