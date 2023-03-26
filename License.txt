@@ -1,0 +1,5 @@
+/* Copyright - All Rights Reserved
+ * Unauthorized copying of this file, via any medium is strictly prohibited
+ * Proprietary and confidential
+ * Written by Vladislav Förster <vladi@vladislavfoerster.com>, March 2023
+ */
