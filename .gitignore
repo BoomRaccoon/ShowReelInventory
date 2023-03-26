@@ -73,3 +73,15 @@ Plugins/*
 DerivedDataCache/*
 
 Platforms/*
+/Content/TwinSwordAnimsetBase
+/Content/blender/meshes/Horse
+/Content/Animations/Climb
+/Content/Animations
+/Content
+/Content/Characters/Mannequins/Meshes/*Mann*
+/Content/Meshes/EuropeanSwords/*Russian*
+/Content/Meshes/EuropeanSwords/*Danish*
+/Content/Meshes/EuropeanSwords/*Ringeck*
+/Content/Meshes/EuropeanSwords/*French*
+/Content/Meshes/EuropeanSwords/*Venetian*
+/Content/Meshes/EuropeanSwords/*Silk*
