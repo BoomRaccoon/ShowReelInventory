@@ -12,7 +12,7 @@
 #include "MyCharacterMovementComponent.h"
 #include "MotionWarpingComponent.h"
 #include "../Components/AC_InventoryManager.h"
-#include "../Pickup.h"
+#include "../Spawnables/Pickup.h"
 #include "../Interfaces/Interaction.h"
 
 
@@ -54,9 +54,9 @@ AFightForFameCharacter::AFightForFameCharacter(const FObjectInitializer& ObjectI
 	CameraBoom->bUsePawnControlRotation = true; // Rotate the arm based on the controller
 
 	// Create a follow camera
-	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
-	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
-	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
+	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
+	Camera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
+	Camera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
 
 	InventoryManager = CreateDefaultSubobject<UAC_InventoryManager>("InventoryManager");
 
@@ -112,27 +112,35 @@ void AFightForFameCharacter::BeginPlay()
 	}
 }
 
+void AFightForFameCharacter::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+	Char_ASC->InitAbilityActorInfo(this, this);
+}
+
 //////////////////////////////////////////////////////////////////////////
 // Input
 
 void AFightForFameCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
 {
 	// ACTION SETUP
-	if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent)) {
+	if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent))
+	{
 		
 		// JUMPING
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ACharacter::Jump);
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
 
+		// CROUCHING
+		EnhancedInputComponent->BindAction(IA_Crouch, ETriggerEvent::Completed, this, &AFightForFameCharacter::DoCrouch);
+		EnhancedInputComponent->BindAction(IA_Crouch, ETriggerEvent::Completed, this, &AFightForFameCharacter::UndoCrouch);
+
 		// MOVEMENT and LOOKING
-		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AFightForFameCharacter::Move);		
+		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AFightForFameCharacter::Move);
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AFightForFameCharacter::Look);
 
 		// INTERACT
 		EnhancedInputComponent->BindAction(IA_Interact, ETriggerEvent::Started, this, &AFightForFameCharacter::Interact);
-
-
-
 	}
 }
 
@@ -191,22 +199,26 @@ void AFightForFameCharacter::Look(const FInputActionValue& Value)
 	}
 }
 
-void AFightForFameCharacter::PossessedBy(AController* NewController)
+void AFightForFameCharacter::DoCrouch()
 {
-	Super::PossessedBy(NewController);
-	Char_ASC->InitAbilityActorInfo(this, this);
+	if(GetCharacterMovement()->bWantsToCrouch == false)
+		Crouch();
+	else
+		UnCrouch();
 }
+
+void AFightForFameCharacter::UndoCrouch()
+{
 	
-void AFightForFameCharacter::OnRep_PlayerState()
-{
-	Super::OnRep_PlayerState();
-	Char_ASC->InitAbilityActorInfo(this, this);
 }
+
+
 
 void AFightForFameCharacter::Interact()
 {
 	FHitResult OutHit;
-	bool hit = GetWorld()->LineTraceSingleByChannel(OutHit, FollowCamera->GetComponentLocation(), FollowCamera->GetComponentLocation() + (FollowCamera->GetForwardVector()*1000), ECollisionChannel::ECC_GameTraceChannel10);
+	bool hit = GetWorld()->LineTraceSingleByChannel(OutHit, Camera->GetComponentLocation(), Camera->GetComponentLocation() + (Camera->GetForwardVector()*1000), ECollisionChannel::ECC_GameTraceChannel10);
+	//DrawDebugLine(GetWorld(), Camera->GetComponentLocation(), Camera->GetComponentLocation() + (Camera->GetForwardVector() * 1000), FColor::Cyan, false, 5.0f, 0, 5.0f);
 	if (hit)
 	{
 		if(OutHit.GetActor()->Implements<UInteraction>())
@@ -215,7 +227,12 @@ void AFightForFameCharacter::Interact()
 		}
 	}
 		
-	//DrawDebugLine(GetWorld(), FollowCamera->GetComponentLocation(), FollowCamera->GetComponentLocation() + (FollowCamera->GetForwardVector() * 1000), FColor::Cyan, false, 5.0f, 0, 5.0f);
+}
+
+void AFightForFameCharacter::OnRep_PlayerState()
+{
+	Super::OnRep_PlayerState();
+	Char_ASC->InitAbilityActorInfo(this, this);
 }
 
 UMyCharacterMovementComponent* AFightForFameCharacter::GetMyMovementComponent() const

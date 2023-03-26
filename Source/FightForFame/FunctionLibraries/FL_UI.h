@@ -17,4 +17,10 @@ class FIGHTFORFAME_API UFL_UI : public UBlueprintFunctionLibrary
 	UFUNCTION(BlueprintCallable, Category="File Utils", meta=(Keywords="file time get modified"))
 	static FDateTime GetFileModificationTime(FString Path);
 
+	UFUNCTION(BlueprintCallable, Category="EIS", meta=(Keywords="eis save player mappable"))
+	static void WritePlayerMappableKeys(AFightForFameCharacter* Player);
+
+	UFUNCTION(BlueprintCallable, Category = "Memory Management", meta = (Keywords = "force garbage collection"))
+	static void ForceGC();
+
 };

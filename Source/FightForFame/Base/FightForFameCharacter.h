@@ -20,7 +20,7 @@ UCLASS(config=Game)
 class AFightForFameCharacter : public ACharacter
 {
 	GENERATED_BODY()
-
+	
 	///////////////////////////////////////////// INPUT PROPERTIES
 	/** MAPPINGCONTEXT */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
@@ -35,7 +35,10 @@ class AFightForFameCharacter : public ACharacter
 	class UInputAction* LookAction;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* IA_Interact;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	class UInputAction* IA_Crouch;
 	////////////////////////////////////////////
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Interaction", meta = (AllowPrivateAccess = "true"))
 	float InteractionRange;
 
@@ -43,12 +46,14 @@ class AFightForFameCharacter : public ACharacter
 	UAbilitySystemComponent* Char_ASC;
 
 public:
-	///////////////////////////////////////////// CAMERA SETUP
+	/*
+		CAMERA SETUP
+	*/ 
 	/** Camera boom positioning the camera behind the character */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class USpringArmComponent* CameraBoom;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-	class UCameraComponent* FollowCamera;
+	class UCameraComponent* Camera;
 	/////////////////////////////////////////////
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
@@ -91,6 +96,8 @@ protected:
 	/** Called for looking input */
 	void Look(const FInputActionValue& Value);
 			
+	void DoCrouch();
+	void UndoCrouch();
 	virtual void PossessedBy(AController* NewController) override;
 	virtual void OnRep_PlayerState() override;
 
@@ -108,6 +115,6 @@ protected:
 
 public:
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
-	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
+	FORCEINLINE class UCameraComponent* GetCamera() const { return Camera; }
 };
 
