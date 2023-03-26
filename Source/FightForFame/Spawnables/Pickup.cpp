@@ -41,7 +41,7 @@ void APickup::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	if(Character)
-		PickupText->SetWorldRotation(FRotationMatrix::MakeFromX(Character->FollowCamera->GetComponentLocation() - GetActorLocation()).Rotator());
+		PickupText->SetWorldRotation(FRotationMatrix::MakeFromX(Character->Camera->GetComponentLocation() - GetActorLocation()).Rotator());
 }
 
 void APickup::OnConstruction(const FTransform& Transform)

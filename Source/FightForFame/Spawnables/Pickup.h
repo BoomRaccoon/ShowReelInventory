@@ -60,12 +60,13 @@ public:
 	//virtual void InitMesh();
 public:
 	void OnConstruction(const FTransform& Transform) override;
+	void PostInitializeComponents() override;
+
 	UFUNCTION()
 	void BeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 	UFUNCTION()
 	void EndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
-	void PostInitializeComponents() override;
 
 	void UpdateTextLocation();
 
