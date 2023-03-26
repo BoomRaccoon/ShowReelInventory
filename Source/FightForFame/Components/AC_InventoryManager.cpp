@@ -56,7 +56,7 @@ bool UAC_InventoryManager::AddItem(int InventorySlot, const FItem& Item)
 }
 
 
-bool UAC_InventoryManager::EquipItem(EEquipmentSlot Slot, const FItem& Item)
+bool UAC_InventoryManager::EquipItem(EEquipmentSlot Slot, const FItem& Item, int InventorySlot)
 {
 	/*
 	s_Head = 0,
@@ -67,13 +67,13 @@ bool UAC_InventoryManager::EquipItem(EEquipmentSlot Slot, const FItem& Item)
 	s_Pants,
 	s_Shoes
 	*/
-
+	
 	if (EquippedItems[(int)Slot].Name.IsEmpty())
 	{
-		EquippedItems[(int)Slot] = Item;
 		AFightForFameCharacter* Player = Cast<AFightForFameCharacter>(GetOwner());
 		if (Player)
 		{
+			EquippedItems[(int)Slot] = Item;
 			switch (Slot)
 			{
 					case 0:
@@ -100,8 +100,11 @@ bool UAC_InventoryManager::EquipItem(EEquipmentSlot Slot, const FItem& Item)
 					default:
 						break;
 			}
+			if(InventorySlot != -1)
+				RemoveItem(Item, InventorySlot);
+
+			return true;
 		}
-		return true;
 	}
 	return false;
 }
@@ -119,9 +122,9 @@ bool UAC_InventoryManager::CheckSpace(FIntPoint ItemSize, int Slot, int Previous
 	if (! (PreviousSlot < 0) )
 	{
 		// temporary array to set slots of previous false before the check check space if item is occupying slots
-		for (int i = PreviousSlot; i < Slot+ ColumnsRows.X * ItemSize.Y + 1; i = i + ColumnsRows.Y + 1)
+		for (int i = PreviousSlot; i < PreviousSlot+ (ColumnsRows.X+1) * (ItemSize.Y-1)+1; i = i + ColumnsRows.Y + 1)
 		{
-			for (int j = 0; j < ItemSize.Y - 1; j++)
+			for (int j = 0; j < ItemSize.X; j++)
 			{
 				tempSlots[i + j] = false;
 			}
@@ -130,13 +133,13 @@ bool UAC_InventoryManager::CheckSpace(FIntPoint ItemSize, int Slot, int Previous
 
 
 	// check every affected slot state, return if a slot is occupied
-	for (int i = Slot; i < Slot+(ColumnsRows.X+1)*ItemSize.Y; i= i+ColumnsRows.Y+1)
+	for (int i = Slot; i < Slot+(ColumnsRows.Y+1)*(ItemSize.Y-1) + (ItemSize.X-1); i= i+ColumnsRows.Y+1)
 	{
 		for (int j = 0; j < ItemSize.X; j++)
 		{ 
 			if(tempSlots[i + j])
 			{
-				UE_LOG(Inventory, Log, TEXT("Item did not fit"));
+				//UE_LOG(Inventory, Log, TEXT("Item did not fit"));
 				return false;
 			}
 		}
@@ -171,47 +174,87 @@ void UAC_InventoryManager::CommitChange(FIntPoint Size, int Slot)
 
 void UAC_InventoryManager::RemoveItem(FItem Item, int Slot)
 {
-	for (int i = Slot; i < Slot + ColumnsRows.X * Item.SlotSize.Y + 1; i = i + ColumnsRows.Y + 1)
+	if (! (Slot < 0))
 	{
-		for (int j = 0; j < Item.SlotSize.Y; j++)
+		for (int i = Slot; i < Slot + ColumnsRows.X * Item.SlotSize.Y + 1; i = i + ColumnsRows.Y + 1)
 		{
-			InventorySlots[i + j] = false;
+			for (int j = 0; j < Item.SlotSize.Y; j++)
+			{
+				InventorySlots[i + j] = false;
+			}
 		}
+		OwnedItems[Slot] = FItem();
 	}
-	OwnedItems[Slot] = FItem();
+	else
+	{
+		EquippedItems[(int)Item.EquipmentSlot] = FItem();
+		UnequipItem(Item);
+	}
 }
 
-bool UAC_InventoryManager::MoveItem(FItem& Item, int Slot, int PreviousSlot)
+bool UAC_InventoryManager::MoveItem(FItem& Item, int Slot, int PreviousSlot, bool WasEquipped)
 {
 	if (!CheckSpace(Item.SlotSize, Slot, PreviousSlot))
 	{
 		UE_LOG(Inventory, Log, TEXT("Item did not fit"));
 		return false;
 	}
-	
-	for (int i = PreviousSlot; i < PreviousSlot + ColumnsRows.X * Item.SlotSize.Y + 1; i = i + ColumnsRows.Y + 1)
+
+	if (!(PreviousSlot < 0))
 	{
-		for (int j = 0; j < Item.SlotSize.Y - 1; j++)
+		for (int i = PreviousSlot; i < PreviousSlot + ColumnsRows.X * Item.SlotSize.Y + 1; i = i + ColumnsRows.Y + 1)
 		{
-			InventorySlots[i + j] = false;
+			for (int j = 0; j < Item.SlotSize.X; j++)
+			{
+				InventorySlots[i + j] = false;
+			}
 		}
 	}
-
-	for (int i = Slot; i < Slot + (ColumnsRows.X + 1) * Item.SlotSize.Y; i = i + ColumnsRows.Y + 1)
+	else if (WasEquipped)
 	{
-		for (int j = 0; j < Item.SlotSize.Y - 1; j++)
-		{
-			InventorySlots[i + j] = true;
-		}
+		UnequipItem(Item);
 	}
 
+	CommitChange(Item.SlotSize, Slot);
 
-	OwnedItems[PreviousSlot] = FItem();
+	if (!(PreviousSlot < 0))
+		OwnedItems[PreviousSlot] = FItem();
 	OwnedItems[Slot] = Item;
 
 	return true;
 }
 
+void UAC_InventoryManager::UnequipItem(const FItem& Item)
+{
+	AFightForFameCharacter* Player = Cast<AFightForFameCharacter>(GetOwner());
+	EquippedItems[(int)Item.EquipmentSlot] = FItem();
+	switch (Item.EquipmentSlot)
+	{
+	case 0:
+		Player->Helmet->SetStaticMesh(nullptr);
+		break;
+	case 1:
+		Player->Neckless->SetStaticMesh(nullptr);
+		break;
+	case 2:
+		Player->Body->SetStaticMesh(nullptr); 
+		break;
+	case 3:
+		Player->Hand1->SetStaticMesh(nullptr);
+		break;
+	case 4:
+		Player->Hand2->SetStaticMesh(nullptr);
+		break;
+	case 5:
+		Player->Pants->SetStaticMesh(nullptr);
+		break;
+	case 6:
+		Player->Shoes->SetStaticMesh(nullptr);
+		break;
+	default:
+		break;
+	}
+}
 
 
 void UAC_InventoryManager::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)

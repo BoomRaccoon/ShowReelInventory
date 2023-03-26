@@ -21,11 +21,11 @@ UENUM(BlueprintType)
 enum class EEquipmentSlot : uint8
 {
 	s_Head = 0,
-	s_Neckless,
-	s_Body,
-	s_Hand1,
-	s_Hand2,
-	s_Shoes
+	s_Neckless = 1,
+	s_Body = 2,
+	s_Hand1 = 3,
+	s_Hand2 = 4,
+	s_Shoes = 5
 };
 
 

@@ -10,7 +10,6 @@
 DECLARE_LOG_CATEGORY_EXTERN(Inventory, Log, All);
 
 
-
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class FIGHTFORFAME_API UAC_InventoryManager : public UActorComponent
 {
@@ -52,12 +51,17 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	bool AddItem(int InventorySlot, const FItem& Item);
+	UFUNCTION(BlueprintCallable)
+	void RemoveItem(FItem Item, int Slot);
+	UFUNCTION(BlueprintCallable)
+	bool MoveItem(UPARAM(ref)	 FItem& Item, int Slot, int PreviousSlot, bool WasEquqipped);
+
 
 	UFUNCTION(BlueprintCallable)
-	bool MoveItem(UPARAM(ref)	 FItem& Item, int Slot, int PreviousSlot);
-
+	bool EquipItem(EEquipmentSlot Slot, const FItem& Item, int InventorySlot = -1);
 	UFUNCTION(BlueprintCallable)
-	bool EquipItem(EEquipmentSlot Slot, const FItem& Item);
+	void UnequipItem(const FItem& Item);
+
 
 	/*
 	Returns true if the item fits at the specified slot
@@ -67,15 +71,18 @@ public:
 	UFUNCTION(BlueprintCallable)
 	bool CheckSpace(FIntPoint Size, int Slot, int PreviousSlot = -1);
 
+	/* Finds a free slot for an item
+	@param Item := used to get the size */
 	UFUNCTION(BlueprintCallable)
 	int FindSlot(const FItem& Item);
-
+	
+	/* Will set the slots to occupied
+	@param Size := X=width y=height of the item
+	@param Slot := top left slot index
+	*/
 	UFUNCTION(BlueprintCallable)
 	void CommitChange(FIntPoint Size, int Slot);
-
-	UFUNCTION(BlueprintCallable)
-	void RemoveItem(FItem Item, int Slot);
-
+	
 
 private:
 		
