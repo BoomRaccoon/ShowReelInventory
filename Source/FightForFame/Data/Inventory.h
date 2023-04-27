@@ -84,7 +84,7 @@ public:
 	UPROPERTY(EditDefaultsOnly)
 	TArray<TSoftObjectPtr<UAnimMontage>> AttackAnimations;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (Bitmask, BitmaskEnum = "EInteractionActions"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (Bitmask, BitmaskEnum = "/Script/FightForFame.EInteractionActions"))
 	uint8 Interactions;
 
 };
